@@ -1,6 +1,6 @@
 <div align="center">
   <img
-    src="https://user-images.githubusercontent.com/2398447/142502128-60bb5c16-b4d0-46e6-824a-67c27738657e.png"
+    src="https://calist.io/calist.png"
     width="120"
   />
 
@@ -8,7 +8,7 @@
     Calist
   </h1>
 
-This extension consists of two commands, Calendar and Time. The Calendar command displays a calendar with the current date highlighted. The Time command displays the current time and date. Both commands have a variety of settings that can be customized to your liking.
+This extension consists of two commands, Calendar and Time. The Calendar command displays a calendar with the current date highlighted and very flexible navigation shortcuts. The Time command displays the current time and optional extra timezone. Both commands have a variety of settings that can be customized to your liking.
 <br><br>
 Designed to be a companion for calist.io
 <br><br>
@@ -41,6 +41,8 @@ Designed to be a companion for calist.io
     </a>
   </p>
 </div>
+
+<br><br>
 
 # 🤯 Searching
 

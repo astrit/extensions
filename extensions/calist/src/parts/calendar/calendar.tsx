@@ -39,6 +39,8 @@ export default function Calendar() {
     weather: true,
   });
 
+  console.log("titleNav", titleNav);
+
   const titleCommand = useTitle({
     weather: true,
     day: currentDay,
@@ -81,7 +83,6 @@ export default function Calendar() {
       inset={Grid.Inset.Small}
       aspectRatio={setViewMode}
       searchBarPlaceholder={placeHolder}
-      navigationTitle={titleNav}
       searchBarAccessory={monthDropdown ? <Dropdown /> : undefined}
       actions={<Actions />}
       onSearchTextChange={handleSearchTextChange}

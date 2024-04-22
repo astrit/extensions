@@ -79,7 +79,6 @@ export default function Calendar() {
       selectedItemId={todayId}
       onSearchTextChange={handleSearchTextChange}
       onSelectionChange={(id) => {
-        console.log("onSelectionChange", id);
         getSelection(id, setCurrentWeek, setSelectedDay, getWeek, currentYear, currentMonth);
       }}
     >

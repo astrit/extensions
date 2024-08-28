@@ -11,6 +11,7 @@ import getWeather from "u/weather";
 
 export default function Month() {
   const { currentDay, currentYear, currentMonth, weekFormat, enableWeek } = useContext(Context);
+
   let cal;
 
   if (weekFormat === "monday") {
@@ -49,13 +50,14 @@ export default function Month() {
                 if (day === 0) {
                   return <Day key={AHD()} type="empty" day={day} />;
                 } else if (day === currentDay) {
-                  return <Day key={AHD()} day={day} type="today" hasEvents />;
+                  // return <Day key={AHD()} day={day} type="today" hasEvents />;
+                  return <Day key={AHD()} day={day} type="today" />;
                 } else if (dayIndex === 0 && weekFormat === "sunday") {
                   return <Day key={AHD()} day={day} type="sunday" />;
                 } else if (dayIndex === 6 && weekFormat === "sunday") {
                   return <Day key={AHD()} type="saturday" day={day} />;
                 } else if (dayIndex === 5 && weekFormat === "monday") {
-                  return <Day key={AHD()} day={day} type="saturday" hasEvents />;
+                  return <Day key={AHD()} day={day} type="saturday" />;
                 } else if (dayIndex === 6 && weekFormat === "monday") {
                   return <Day key={AHD()} type="sunday" day={day} />;
                 } else {

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Detail } from "@raycast/api";
+import React, { useEffect, useState } from "react";
+import { Detail, Icon } from "@raycast/api";
 import { getDayName, getMonthName } from "u/getName";
 import getWeather from "u/weather";
+import { getCurrentLocation } from "u/getLocation";
 import fetch from "node-fetch";
 
 interface DayDetailsProps {
@@ -15,67 +16,95 @@ function getCurrentTime(): string {
   return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-async function getCurrentLocation(): Promise<string> {
-  try {
-    const response = await fetch("https://ipapi.co/json/");
-    if (!response.ok) {
-      throw new Error(`Error fetching location: ${response.statusText}`);
-    }
-    const data = (await response.json()) as { city: string; country_name: string };
-    return `${data.city}, ${data.country_name}`;
-  } catch (error) {
-    console.error(error);
-    return "Unknown location";
+async function getHolidays(year: number, countryCode: string): Promise<unknown[]> {
+  const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`);
+  if (!response.ok) {
+    throw new Error(`Error fetching holidays: ${response.statusText}`);
   }
-}
-
-async function getPublicHolidays(year: number, countryCode: string): Promise<{ date: string; localName: string }[]> {
-  try {
-    const response = await fetch(`https://www.openholidaysapi.org/en/v1/holidays?year=${year}&country=${countryCode}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching public holidays: ${response.statusText}`);
-    }
-    const data = (await response.json()) as { date: string; localName: string }[];
-    return data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  return (await response.json()) as unknown[];
 }
 
 export function DayDetails({ day, currentMonth, currentYear }: DayDetailsProps) {
-  const [location, setLocation] = useState<string>("Loading location...");
-  const [holidays, setHolidays] = useState<{ date: string; localName: string }[]>([]);
-  const time = getCurrentTime();
+  const [location, setLocation] = useState("Loading location...");
+  const [time, setTime] = useState(getCurrentTime());
+  const [holidays, setHolidays] = useState<{ name: unknown; date: string }[]>([]);
   const weather = getWeather();
 
   useEffect(() => {
-    async function fetchLocation() {
+    async function fetchLocationAndHolidays() {
       const loc = await getCurrentLocation();
-      setLocation(loc);
+      setLocation(`${loc.city}, ${loc.countryCode}`);
+
+      const holidays = await getHolidays(currentYear, loc.countryCode);
+      setHolidays(holidays as { name: unknown; date: string }[]);
     }
-    fetchLocation();
-  }, []);
+    fetchLocationAndHolidays();
+  }, [day, currentMonth, currentYear]);
 
   useEffect(() => {
-    async function fetchHolidays() {
-      const loc = await getCurrentLocation();
-      const countryCode = loc.split(", ")[1]; // Assuming country code is part of the location string
-      const holidays = await getPublicHolidays(currentYear, countryCode);
-      setHolidays(holidays);
-    }
-    fetchHolidays();
-  }, [currentYear]);
+    const intervalId = setInterval(() => {
+      setTime(getCurrentTime());
+    }, 1000);
 
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const DATE = `${currentYear}-${currentMonth}-${day}`;
+
+  const filteredHolidays = holidays.filter((holiday) => holiday.date === DATE);
+
+  const showHolidays =
+    filteredHolidays.length > 0
+      ? `
+| Holidays        |
+|-----------------|
+${filteredHolidays.map((holiday) => `| ${holiday.name} |`).join("\n")}
+`
+      : "";
+
+  const formattedDate = new Intl.DateTimeFormat("en", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(currentYear, currentMonth - 1, day));
+
+  const SVG_WIDTH = 470;
+  const SVG_HEIGHT = 200;
+
+  const svgImage = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="${SVG_WIDTH}" height="${SVG_HEIGHT}" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}">
+    <g transform="translate(0,0)">
+      <rect width="${SVG_WIDTH}" height="${SVG_HEIGHT}" stroke="#fff" stroke-width="2" fill="#fff" rx="12" opacity="0.01"></rect>
+      <text x="${SVG_WIDTH / 2}" y="${SVG_HEIGHT / 2 + 4}" fill="#fff" font-family="sans-serif" alignment-baseline="middle" font-size="24" stroke-width="0" stroke="#000" text-anchor="middle">${formattedDate}</text>
+    </g>
+    </svg>
+  `;
+
+  // &nbsp;
   return (
     <Detail
       markdown={`
-# ${getDayName(day)} ${day}, ${getMonthName(currentMonth)} ${currentYear}
+![Date](data:image/svg+xml;utf8,${encodeURIComponent(svgImage)})
 
-${time}    ·    ${location}    ·    ${weather}
+${showHolidays}
+`}
+      navigationTitle={`${getDayName(day)} ${day}, ${getMonthName(currentMonth)} ${currentYear}`}
+      metadata={
+        <Detail.Metadata>
+          <Detail.Metadata.Label icon={Icon.Clock} title="Time" text={time} />
+          <Detail.Metadata.Label icon={Icon.Sun} title="Weather" text={weather?.toString()} />
+          <Detail.Metadata.Label icon={Icon.Geopin} title="Location" text={location} />
 
-${holidays.length > 0 ? `<PublicHolidaysTable holidays={holidays} />` : ""}
-      `}
+          <Detail.Metadata.Separator />
+
+          <Detail.Metadata.Link
+            title="Calendars"
+            target={`https://calendar.google.com/calendar/u/0/r/day/${currentYear}/${currentMonth}/${day}`}
+            text="Google Calendar"
+          />
+          <Detail.Metadata.Link title="" target={`https://cron.re`} text="CR0N" />
+        </Detail.Metadata>
+      }
     />
   );
 }

@@ -1,11 +1,10 @@
 import { useContext } from "react";
-import { Grid, ActionPanel, PushAction } from "@raycast/api";
+import { Grid } from "@raycast/api";
 import Actions from "@/actions/actions";
 import { v4 as AHD } from "uuid";
 import { getIcon } from "u/getIcon";
 import { getDayName } from "u/getName";
 import { Context } from "u/context";
-import { DayDetails } from "./detail";
 
 interface DayProps {
   type: "day" | "week" | "today" | "saturday" | "sunday" | "empty" | "name";
@@ -54,15 +53,7 @@ export function Day({ type, day, hasEvents, name }: DayProps) {
               ? `${getDayName(day)} ${day}, ${currentMonth} ${currentYear}`
               : "",
       }}
-      actions={
-        <ActionPanel>
-          <PushAction
-            title="Show Details"
-            target={<DayDetails day={day} currentMonth={currentMonth} currentYear={currentYear} />}
-          />
-          <Actions global={type !== "week" && type !== "empty" && type !== "name" ? false : true} day={day} />
-        </ActionPanel>
-      }
+      actions={<Actions global={type !== "week" && type !== "empty" && type !== "name" ? false : true} day={day} />}
     />
   );
 }

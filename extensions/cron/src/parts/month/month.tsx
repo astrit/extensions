@@ -55,7 +55,7 @@ export default function Month() {
                 } else if (dayIndex === 6 && weekFormat === "sunday") {
                   return <Day key={AHD()} type="saturday" day={day} />;
                 } else if (dayIndex === 5 && weekFormat === "monday") {
-                  return <Day key={AHD()} day={day} type="saturday" />;
+                  return <Day key={AHD()} day={day} type="saturday" hasEvents />;
                 } else if (dayIndex === 6 && weekFormat === "monday") {
                   return <Day key={AHD()} type="sunday" day={day} />;
                 } else {
